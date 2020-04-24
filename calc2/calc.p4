@@ -20,24 +20,24 @@ header ethernet_t {
  * This is a custom protocol header for the calculator. We'll use 
  * etherType 0x1234 for it (see parser)
  */
-const bit<16> P4CALC_ETYPE = 0x1234;
-const bit<8>  P4CALC_P     = 0x50;   // 'P'
-const bit<8>  P4CALC_4     = 0x34;   // '4'
-const bit<8>  P4CALC_VER   = 0x01;   // v0.1
-const bit<8>  P4CALC_PLUS  = 0x2b;   // '+'
-const bit<8>  P4CALC_MINUS = 0x2d;   // '-'
-const bit<8>  P4CALC_AND   = 0x26;   // '&'
-const bit<8>  P4CALC_OR    = 0x7c;   // '|'
-const bit<8>  P4CALC_CARET = 0x5e;   // '^'
+const bit<16> NET_STORE_API_ETYPE = 0x1234;
+const bit<16> NET_STORE_ETYPE     = 0x1235;
+const bit<8>  NET_STORE_VER       = 0x01;   // v0.1
+const bit<8>  NET_STORE_PUT       = 0x2b;
+const bit<8>  NET_STORE_GET       = 0x2d;
 
-header p4calc_t {
-    bit<8>  p;
-    bit<8>  four;
+header net_store_api_t {
     bit<8>  ver;
     bit<8>  op;
     bit<32> id;
     bit<32> data;
 }
+
+header net_store_t {
+   bit<8>  ver;
+   bit<32> id;
+   bit<32> data;
+};
 
 /*
  * All headers, used in the program needs to be assembled into a single struct.
@@ -45,8 +45,9 @@ header p4calc_t {
  * because it is done "by the architecture", i.e. outside of P4 functions
  */
 struct headers {
-    ethernet_t   ethernet;
-    p4calc_t     p4calc;
+    ethernet_t      ethernet;
+    net_store_api_t net_store_api;
+    net_store_t     net_store;
 }
 
 /*
@@ -70,25 +71,33 @@ parser MyParser(packet_in packet,
     state start {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
-            P4CALC_ETYPE : check_p4calc;
-            default      : accept;
+            NET_STORE_API_ETYPE : check_net_store_api;
+            NET_STORE_ETYPE     : check_net_store;
+            default             : accept;
         }
     }
     
-    state check_p4calc {
-        /* TODO: just uncomment the following parse block */
-         
-        transition select(packet.lookahead<p4calc_t>().p,
-        packet.lookahead<p4calc_t>().four,
-        packet.lookahead<p4calc_t>().ver) {
-            (P4CALC_P, P4CALC_4, P4CALC_VER) : parse_p4calc;
-            default                          : accept;
+    state check_net_store_api {
+        transition select(packet.lookahead<net_store_api_t>().ver) {
+            NET_STORE_VER : parse_net_store_api;
+            default       : accept;
         }
-        
     }
     
-    state parse_p4calc {
-        packet.extract(hdr.p4calc);
+    state parse_net_store_api {
+        packet.extract(hdr.net_store_api);
+        transition accept;
+    }
+    
+    state check_net_store {
+        transition select(packet.lookahead<net_store_t>().ver) {
+            NET_STORE_VER : parse_net_store;
+            default       : accept;
+        }
+    }
+    
+    state parse_net_store {
+        packet.extract(hdr.net_store);
         transition accept;
     }
 }
@@ -113,50 +122,31 @@ control MyIngress(inout headers hdr,
 
 
     action send_back(bit<32> result) {
-        /* TODO
-         * - put the result back in hdr.p4calc.res
-         * - swap MAC addresses in hdr.ethernet.dstAddr and
-         *   hdr.ethernet.srcAddr using a temp variable
-         * - Send the packet back to the port it came from
-             by saving standard_metadata.ingress_port into
-             standard_metadata.egress_spec
-         */ 
-
-        
-        /*hdr.p4calc.res = result;
+        /*hdr.net_store_api.res = result;
         bit<48> tmp = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
         hdr.ethernet.srcAddr = tmp;
 
         standard_metadata.egress_spec = standard_metadata.ingress_port;*/
     }
-    
-    action operation_add() {
-        hdr.p4calc.op = P4CALC_AND;
+
+    action operation_put() {
         standard_metadata.egress_spec = 2;
+        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+        hdr.ethernet.etherType = NET_STORE_ETYPE;
+
+        hdr.net_store.setValid();
+        hdr.net_store.ver   = NET_STORE_VER;
+        hdr.net_store.id    = hdr.net_store_api.id;
+        hdr.net_store.data  = hdr.net_store_api.data;
+        hdr.net_store_api.setInvalid();
     }
     
-    action operation_sub() {
-        reg.write(0,hdr.p4calc.id);
+    action operation_get() {
+        @atomic {
+        reg.write(0,hdr.net_store_api.id);
         regdest.write(0,hdr.ethernet.srcAddr);
     }
-    
-    action operation_and() {
-        bit<32> id;
-        bit<48> dest;
-        reg.read(id,0);
-        regdest.read(dest,0);
-
-        if(id == hdr.p4calc.id)
-        {
-            standard_metadata.egress_spec = 3;
-            hdr.ethernet.dstAddr = dest;
-        }
-        else
-        {
-            standard_metadata.egress_spec = 2;
-            hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-        }
     }
 
     action operation_drop() {
@@ -165,24 +155,64 @@ control MyIngress(inout headers hdr,
     
     table calculate {
         key = {
-            hdr.p4calc.op        : exact;
+            hdr.net_store_api.op        : exact;
         }
         actions = {
-            operation_add;
-            operation_sub;
-            operation_and;
+            operation_put;
+            operation_get;
             operation_drop;
         }
         const default_action = operation_drop();
         const entries = {
-            P4CALC_PLUS : operation_add();
-            P4CALC_MINUS: operation_sub();
-            P4CALC_AND  : operation_and();
+            NET_STORE_PUT : operation_put();
+            NET_STORE_GET : operation_get();
         }
     }
-            
+
+    action net_store_handle_request(bit<48> dest) {
+
+
+        hdr.net_store_api.ver  = NET_STORE_VER;
+        hdr.net_store_api.op   = NET_STORE_GET;
+        hdr.net_store_api.id   = hdr.net_store.id;
+        hdr.net_store_api.data = hdr.net_store.data;
+
+
+        standard_metadata.egress_spec = 3;
+        hdr.ethernet.dstAddr = dest;
+        hdr.ethernet.etherType = NET_STORE_API_ETYPE;
+    }
+
+    action net_store_forward() {
+        standard_metadata.egress_spec = 2;
+        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+    }
+
     apply {
-        if (hdr.p4calc.isValid()) {
+        if (hdr.net_store.isValid()) {
+            bit<32> id;
+            bit<48> dest;
+
+            @atomic {
+            reg.read(id,0);
+            regdest.read(dest,0);
+            }
+
+            if(id == hdr.net_store.id)
+            {
+                hdr.net_store_api.setValid();
+                net_store_handle_request(dest);
+                hdr.net_store.setInvalid();
+                @atomic {
+                  reg.write(0,0);
+                  regdest.write(0,0);
+                }
+            }
+            else
+            {
+                net_store_forward();
+            }
+        } else if (hdr.net_store_api.isValid()) {
             calculate.apply();
         } else {
             operation_drop();
@@ -213,7 +243,8 @@ control MyComputeChecksum(inout headers hdr, inout metadata meta) {
 control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
-        packet.emit(hdr.p4calc);
+        packet.emit(hdr.net_store_api);
+        packet.emit(hdr.net_store);
     }
 }
 
