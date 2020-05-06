@@ -3,6 +3,9 @@
 #include <core.p4>
 #include <v1model.p4>
 
+#define INSTANCE_TYPE_NORMAL 0 
+#define INSTANCE_TYPE_I2E_CLONE 1 
+
 /*
  * Define the headers the program will recognize
  */
@@ -117,29 +120,35 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
 
+    const bit<32> cloneSessionId = 250;
+    
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
 
 
     action send_back(bit<32> result) {
-        /*hdr.net_store_api.res = result;
+        hdr.net_store_api.id = result;
         bit<48> tmp = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-        hdr.ethernet.srcAddr = tmp;
+        hdr.ethernet.srcAddr = tmp;            
 
-        standard_metadata.egress_spec = standard_metadata.ingress_port;*/
+        standard_metadata.egress_spec = standard_metadata.ingress_port;
     }
 
     action operation_put() {
+
+        hdr.net_store.setValid();
+        hdr.net_store_api.setInvalid();   
+        
+
         standard_metadata.egress_spec = 2;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
         hdr.ethernet.etherType = NET_STORE_ETYPE;
-
-        hdr.net_store.setValid();
         hdr.net_store.ver   = NET_STORE_VER;
         hdr.net_store.id    = hdr.net_store_api.id;
-        hdr.net_store.data  = hdr.net_store_api.data;
-        hdr.net_store_api.setInvalid();
+        hdr.net_store.data  = hdr.net_store_api.data; 
+
+        clone3(CloneType.I2E, cloneSessionId,standard_metadata);  
     }
     
     action operation_get() {
@@ -226,7 +235,14 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-    apply { }
+
+    apply {
+        if (standard_metadata.instance_type == INSTANCE_TYPE_I2E_CLONE) {
+            hdr.net_store.setInvalid();
+            hdr.net_store_api.setValid();
+            hdr.ethernet.etherType = NET_STORE_API_ETYPE;
+        }
+     }
 }
 
 /*************************************************************************
