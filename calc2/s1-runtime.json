@@ -1,6 +1,6 @@
 {
   "target": "bmv2",
-  "p4info": "build/calc.p4.p4info.txt",
-  "bmv2_json": "build/calc.json",
+  "p4info": "build/ns.p4.p4info.txt",
+  "bmv2_json": "build/ns.json",
   "table_entries": [ ]
 }
