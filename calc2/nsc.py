@@ -44,31 +44,31 @@ def main():
            break
 
         if command == "put":
-           operation='+'
-           data = argv[1]
+           try:
+               pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='+', id=1, data=int(argv[1]))
+
+               srp1(pkt, iface=iface, timeout=1, verbose=False)
+
+           except Exception as error:
+               print error
 
         if command == "get":
-           operation='-'
-           data = "0"
+           try:
+               pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='-', id=1, data=0)
 
-        try:
-            pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op=operation,
-                                              id=int(1),
-                                              data=int(data))
-            #pkt = pkt/' '
+               resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
+               if resp:
+                   p4calc=resp[P4calc]
+                   if p4calc:
+                       print "ID: {} Value: {}".format(p4calc.id, p4calc.data)
+                   else:
+                       print "cannot find P4calc header in the packet"
+               else:
+                   print "No reply is recieved"
+                 
+           except Exception as error:
+               print error
 
-#            pkt.show()
-            resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
-            if resp:
-                p4calc=resp[P4calc]
-                if p4calc:
-                    print "ID: {} Value: {}".format(p4calc.id, p4calc.data)
-                else:
-                    print "cannot find P4calc header in the packet"
-            else:
-                print "Didn't receive response"
-        except Exception as error:
-            print error
 
 
 if __name__ == '__main__':
