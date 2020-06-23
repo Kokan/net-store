@@ -43,6 +43,9 @@ def main():
         if command == "quit":
            break
 
+        if command == "exit":
+           break
+
         if command == "put":
            operation='+'
            data = argv[1]
