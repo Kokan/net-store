@@ -48,15 +48,17 @@ def main():
 
         if command == "put":
            operation='+'
+           id = 0
            data = argv[1]
 
         if command == "get":
            operation='-'
-           data = "0"
+           id = argv[1]
+           data = 0
 
         try:
             pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op=operation,
-                                              id=int(1),
+                                              id=int(id),
                                               data=int(data))
             #pkt = pkt/' '
 
