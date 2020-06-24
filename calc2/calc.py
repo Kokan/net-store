@@ -49,7 +49,13 @@ def main():
         if command == "put":
            operation='+'
            id = 0
-           data = argv[1]
+           data = 0
+           try:
+               if int.bit_length(int(argv[1])) <= 32:
+                   data = argv[1]
+           except Exception as error:
+               print error
+               continue
 
         if command == "get":
            operation='-'
