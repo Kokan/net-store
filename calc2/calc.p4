@@ -125,16 +125,6 @@ control MyIngress(inout headers hdr,
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
 
-
-    action send_back(bit<32> result) {
-        hdr.net_store_api.id = result;
-        bit<48> tmp = hdr.ethernet.dstAddr;
-        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-        hdr.ethernet.srcAddr = tmp;            
-
-        standard_metadata.egress_spec = standard_metadata.ingress_port;
-    }
-
     action operation_put() {
 
         hdr.net_store.setValid();
@@ -155,7 +145,7 @@ control MyIngress(inout headers hdr,
         @atomic {
         reg.write(0,hdr.net_store_api.id);
         regdest.write(0,hdr.ethernet.srcAddr);
-    }
+        }
     }
 
     action operation_drop() {
@@ -177,24 +167,16 @@ control MyIngress(inout headers hdr,
             NET_STORE_GET : operation_get();
         }
     }
-
-    action net_store_handle_request(bit<48> dest) {
-
-
-        hdr.net_store_api.ver  = NET_STORE_VER;
-        hdr.net_store_api.op   = NET_STORE_GET;
-        hdr.net_store_api.id   = hdr.net_store.id;
-        hdr.net_store_api.data = hdr.net_store.data;
-
-
-        standard_metadata.egress_spec = 3;
-        hdr.ethernet.dstAddr = dest;
-        hdr.ethernet.etherType = NET_STORE_API_ETYPE;
-    }
-
+    
     action net_store_forward() {
         standard_metadata.egress_spec = 2;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+    }
+
+    action net_store_handle_request(bit<48> dest) {
+        standard_metadata.egress_spec = 2;
+        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+        clone3(CloneType.I2E, cloneSessionId,standard_metadata); 
     }
 
     apply {
@@ -209,9 +191,7 @@ control MyIngress(inout headers hdr,
 
             if(id == hdr.net_store.id)
             {
-                hdr.net_store_api.setValid();
                 net_store_handle_request(dest);
-                hdr.net_store.setInvalid();
                 @atomic {
                   reg.write(0,0);
                   regdest.write(0,0);
@@ -238,10 +218,21 @@ control MyEgress(inout headers hdr,
 
     apply {
         if (standard_metadata.instance_type == INSTANCE_TYPE_I2E_CLONE) {
+            
             hdr.net_store.setInvalid();
             hdr.net_store_api.setValid();
             hdr.ethernet.etherType = NET_STORE_API_ETYPE;
+
+            if(hdr.net_store_api.op != NET_STORE_PUT)
+            {
+                hdr.net_store_api.ver  = NET_STORE_VER;
+                hdr.net_store_api.op   = NET_STORE_GET;
+                hdr.net_store_api.id   = hdr.net_store.id;
+                hdr.net_store_api.data = hdr.net_store.data;                 
+            }
+ 
         }
+
      }
 }
 
