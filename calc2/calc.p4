@@ -124,7 +124,7 @@ control MyIngress(inout headers hdr,
     
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
-    register<bit<48>>(1) regport;
+    register<bit<9>>(1) regport;
 
     action operation_put() {
 
