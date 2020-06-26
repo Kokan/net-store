@@ -124,16 +124,14 @@ control MyIngress(inout headers hdr,
     
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
-    register<bit<9>>(1) regport;
 
     action operation_put() {
 
         hdr.net_store.setValid();
         hdr.net_store_api.setInvalid();   
 
-        standard_metadata.egress_spec = regport;
-        hdr.ethernet.scrAddr = hdr.ethernet.dstAddr
-        hdr.ethernet.dstAddr = dstAddr;
+        standard_metadata.egress_spec = 2;
+        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
         hdr.ethernet.etherType = NET_STORE_ETYPE;
         hdr.net_store.ver   = NET_STORE_VER;
         hdr.net_store.id    = hdr.net_store_api.id;
@@ -187,7 +185,7 @@ control MyIngress(inout headers hdr,
     }
 
     action net_store_handle_request(bit<48> dest) {
-        standard_metadata.egress_spec = 3;
+        standard_metadata.egress_spec = 2;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
         clone3(CloneType.I2E, cloneSessionId,standard_metadata); 
     }
