@@ -2,5 +2,48 @@
   "target": "bmv2",
   "p4info": "build/calc.p4.p4info.txt",
   "bmv2_json": "build/calc.json",
-  "table_entries": [ ]
+  "table_entries": [
+    {
+      "table": "MyIngress.net_store_lpm",
+      "default_action": true,
+      "action_name": "MyIngress.drop",
+      "action_params": {}
+    },
+    {
+      "table": "MyIngress.net_store_lpm",
+      "match": {
+        "hdr.ethernet.dstAddr": ["10.0.1.1", 32]
+      },
+      "action_name": "MyIngress.operation_forward",
+      "action_params": {
+        "dstAddr": "08:00:00:00:01:01",
+        "port": 2
+      }
+    },
+    {
+      "table": "MyIngress.calculate",
+      "default_action": true,
+      "action_name": "MyIngress.drop",
+      "action_params": {}
+    },
+    {
+      "table": "MyIngress.calculate",
+      "match": {
+        "hdr.net_store_api.op": "0x2b"
+      },
+      "action_name": "MyIngress.operation_put",
+      "action_params": {
+        "dstAddr": "08:00:00:00:01:01",
+        "port": 2
+      }
+    },
+    {
+      "table": "MyIngress.calculate",
+      "match": {
+        "hdr.ipv4.dstAddr": "0x2d"
+      },
+      "action_name": "MyIngress.operation_get",
+      "action_params": {}
+    }
+  ]
 }

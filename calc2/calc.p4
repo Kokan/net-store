@@ -125,13 +125,14 @@ control MyIngress(inout headers hdr,
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
 
-    action operation_put() {
+    action operation_put(bit<48> dstAddr, bit<9> port) {
 
         hdr.net_store.setValid();
         hdr.net_store_api.setInvalid();   
 
-        standard_metadata.egress_spec = 2;
-        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+        standard_metadata.egress_spec = port;
+        hdr.ethernet.scrAddr = hdr.ethernet.dstAddr
+        hdr.ethernet.dstAddr = dstAddr;
         hdr.ethernet.etherType = NET_STORE_ETYPE;
         hdr.net_store.ver   = NET_STORE_VER;
         hdr.net_store.id    = hdr.net_store_api.id;
@@ -166,14 +167,28 @@ control MyIngress(inout headers hdr,
             NET_STORE_GET : operation_get();
         }
     }
+
+    table net_store_lpm {
+        key = {
+            hdr.ethernet.dstAddr: lpm;
+        }
+        actions = {
+            operation_forward;
+            operation_drop;
+            NoAction;
+        }
+        size = 1024;
+        default_action = operation_drop();
+    }
     
-    action net_store_forward() {
-        standard_metadata.egress_spec = 2;
-        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+    action operation_forward(bit<48> dstAddr, bit<9> port) {
+        standard_metadata.egress_spec = port;
+        hdr.ethernet.scrAddr = hdr.ethernet.dstAddr
+        hdr.ethernet.dstAddr = dstAddr;
     }
 
     action net_store_handle_request(bit<48> dest) {
-        standard_metadata.egress_spec = 2;
+        standard_metadata.egress_spec = 3;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
         clone3(CloneType.I2E, cloneSessionId,standard_metadata); 
     }
@@ -221,7 +236,7 @@ control MyIngress(inout headers hdr,
             }
             else
             {
-                net_store_forward();
+                net_store_lpm.apply();
             }
         } else if (hdr.net_store_api.isValid()) {
             calculate.apply();
