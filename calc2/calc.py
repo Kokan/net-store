@@ -43,17 +43,28 @@ def main():
         if command == "quit":
            break
 
+        if command == "exit":
+           break
+
         if command == "put":
            operation='+'
-           data = argv[1]
+           id = 0
+           data = 0
+           try:
+               if int.bit_length(int(argv[1])) <= 32:
+                   data = argv[1]
+           except Exception as error:
+               print error
+               continue
 
         if command == "get":
            operation='-'
-           data = "0"
+           id = argv[1]
+           data = 0
 
         try:
             pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op=operation,
-                                              id=int(1),
+                                              id=int(id),
                                               data=int(data))
             #pkt = pkt/' '
 
