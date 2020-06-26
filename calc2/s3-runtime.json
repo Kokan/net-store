@@ -11,9 +11,7 @@
     },
     {
       "table": "MyIngress.net_store_lpm",
-      "match": {
-        "hdr.ethernet.dstAddr": ["10.0.1.1", 32]
-      },
+      "match": {},
       "action_name": "MyIngress.operation_forward",
       "action_params": {
         "dstAddr": "08:00:00:00:01:01",

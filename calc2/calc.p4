@@ -124,13 +124,14 @@ control MyIngress(inout headers hdr,
     
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
+    register<bit<48>>(1) regport;
 
-    action operation_put(bit<48> dstAddr, bit<9> port) {
+    action operation_put() {
 
         hdr.net_store.setValid();
         hdr.net_store_api.setInvalid();   
 
-        standard_metadata.egress_spec = port;
+        standard_metadata.egress_spec = regport;
         hdr.ethernet.scrAddr = hdr.ethernet.dstAddr
         hdr.ethernet.dstAddr = dstAddr;
         hdr.ethernet.etherType = NET_STORE_ETYPE;
@@ -169,9 +170,7 @@ control MyIngress(inout headers hdr,
     }
 
     table net_store_lpm {
-        key = {
-            hdr.ethernet.dstAddr: lpm;
-        }
+        key = {}
         actions = {
             operation_forward;
             operation_drop;
@@ -183,7 +182,7 @@ control MyIngress(inout headers hdr,
     
     action operation_forward(bit<48> dstAddr, bit<9> port) {
         standard_metadata.egress_spec = port;
-        hdr.ethernet.scrAddr = hdr.ethernet.dstAddr
+        hdr.ethernet.scrAddr = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = dstAddr;
     }
 
