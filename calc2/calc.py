@@ -97,7 +97,6 @@ def main():
                continue
 
            command_put(data)
-           continue
         elif command == "get":
            if len(argv) != 2:
               print "incorrect arguments, please use the following format:"
@@ -105,7 +104,6 @@ def main():
               continue
 
            command_get(argv[1])
-           continue
         elif command == "rm":
            if len(argv) != 2:
               print "incorrect arguments, please use the following format:"
@@ -113,29 +111,8 @@ def main():
               continue
 
            command_rm(argv[1])
-           continue
         else:
            print "Unknown command: " + command
-           continue
-
-        try:
-            pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op=operation,
-                                              id=int(id),
-                                              data=int(data))
-            #pkt = pkt/' '
-
-#            pkt.show()
-            resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
-            if resp:
-                p4calc=resp[P4calc]
-                if p4calc:
-                    print "ID: {} Value: {}".format(p4calc.id, p4calc.data)
-                else:
-                    print "cannot find P4calc header in the packet"
-            else:
-                print "Didn't receive response"
-        except Exception as error:
-            print error
 
 
 if __name__ == '__main__':
