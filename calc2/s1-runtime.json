@@ -5,12 +5,6 @@
   "table_entries": [
     {
       "table": "MyIngress.net_store_lpm",
-      "default_action": true,
-      "action_name": "MyIngress.drop",
-      "action_params": {}
-    },
-    {
-      "table": "MyIngress.net_store_lpm",
       "match": {},
       "action_name": "MyIngress.operation_forward",
       "action_params": {
