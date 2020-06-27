@@ -129,7 +129,7 @@ control MyIngress(inout headers hdr,
     register<bit<32>>(1) rm_reg;
     register<bit<48>>(1) rm_regdest;
 
-    bit<1> marked_to_circulate = 0;
+    bool marked_to_circulate = false;
 
     action operation_forward(bit<9> port) {
         standard_metadata.egress_spec = port;
@@ -169,7 +169,7 @@ control MyIngress(inout headers hdr,
     }
 
     action operation_put() {
-        marked_to_circulate = 1; 
+        marked_to_circulate = true;
 
         hdr.net_store.setValid();
         hdr.net_store_api.setInvalid();   
@@ -199,8 +199,9 @@ control MyIngress(inout headers hdr,
             NET_STORE_RM  : operation_rm();
         }
     }
+
     action net_store_handle_request(bit<48> dest) {
-        marked_to_circulate = 1; 
+        marked_to_circulate = true;
         clone(CloneType.I2E, CLONE_SESSIONID);
     }
 
@@ -264,7 +265,7 @@ control MyIngress(inout headers hdr,
             }
             else
             { 
-                marked_to_circulate = 1;    
+                marked_to_circulate = true;
             }
         } else if (hdr.net_store_api.isValid()) {
             calculate.apply();
@@ -272,7 +273,7 @@ control MyIngress(inout headers hdr,
             operation_drop();
         }
 
-        if(marked_to_circulate == 1)
+        if(marked_to_circulate)
         {
             net_store_lpm.apply();
         }
