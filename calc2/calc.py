@@ -28,6 +28,23 @@ bind_layers(Ether, P4calc, type=ETHER_TYPE)
 s = ''
 iface = 'eth0'
 
+def command_put(data):
+    try:
+        pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='+',
+                                          id=0,
+                                          data=int(data))
+
+        resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
+        if resp:
+            p4calc=resp[P4calc]
+            if p4calc:
+                print "ID: {}".format(p4calc.id)
+            else:
+                print "cannot find P4calc header in the packet"
+        else:
+            print "Didn't receive response"
+    except Exception as error:
+        print error
 
 
 def main():
@@ -44,15 +61,15 @@ def main():
         if command == "quit" or command == "exit":
            break
         elif command == "put":
-           operation='+'
-           id = 0
-           data = 0
            try:
                if int.bit_length(int(argv[1])) <= 32:
                    data = argv[1]
            except Exception as error:
                print error
                continue
+
+           command_put(data)
+           continue
         elif command == "get":
            operation='-'
            id = argv[1]
