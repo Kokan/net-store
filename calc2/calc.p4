@@ -179,7 +179,7 @@ control MyIngress(inout headers hdr,
         hdr.net_store.id    = hdr.net_store_api.id;
         hdr.net_store.data  = hdr.net_store_api.data; 
 
-        clone3(CloneType.I2E, cloneSessionId,standard_metadata); 
+        clone(CloneType.I2E, cloneSessionId); 
     }
 
     table calculate {
@@ -201,7 +201,7 @@ control MyIngress(inout headers hdr,
     }
     action net_store_handle_request(bit<48> dest) {
         marked_to_circulate = 1; 
-        clone3(CloneType.I2E, cloneSessionId,standard_metadata); 
+        clone(CloneType.I2E, cloneSessionId); 
     }
 
     apply {
