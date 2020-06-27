@@ -2,5 +2,21 @@
   "target": "bmv2",
   "p4info": "build/calc.p4.p4info.txt",
   "bmv2_json": "build/calc.json",
-  "table_entries": [ ]
+  "table_entries": [
+      {
+        "table": "MyIngress.net_store_lpm",
+        "default_action": true,
+        "action_name": "MyIngress.drop",
+        "action_params": {}
+      },
+      {
+        "table": "MyIngress.net_store_lpm",
+        "match": {},
+        "action_name": "MyIngress.operation_forward",
+        "action_params": {
+          "dstAddr": "08:00:00:00:01:01",
+          "port": 2
+        }
+      }
+  ]
 }
