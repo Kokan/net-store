@@ -60,46 +60,53 @@ def command_rm(key_id):
     except Exception as error:
         print(error)
 
+def command_help():
+    print("ncli help\n"
+          "supported commands: \n"
+          "  put <data>\n"
+          "  get <id>\n"
+          "  rm <id>\n"
+          "  exit / quit\n")
+
+def validate_data(data):
+    try:
+        return int.bit_length(int(data)) <= 32
+    except Exception as error:
+        return False
 
 def main():
 
     while True:
         user_input = str(raw_input('> '))
         argv = user_input.split()
-        if len(argv) > 0:
-            command = argv[0]
-        else:
-            print("no command")
+
+        if len(argv) < 1:
+            command_help()
             continue
+
+        command = argv[0]
 
         if command in ("quit", "exit"):
             break
 
+        if len(argv) != 2:
+            command_help()
+            continue
+
         if command == "put":
-            try:
-                if int.bit_length(int(argv[1])) <= 32:
-                    data = argv[1]
-            except Exception as error:
-                print(error)
+            if not validate_data(argv[1]):
+                print("Data is too long, the current limit is 32 bit")
                 continue
 
-            command_put(data)
+            command_put(argv[1])
         elif command == "get":
-            if len(argv) != 2:
-                print("incorrect arguments, please use the following format:")
-                print("get <key_id>")
-                continue
-
             command_get(argv[1])
         elif command == "rm":
-            if len(argv) != 2:
-                print("incorrect arguments, please use the following format:")
-                print("rm <key_id>")
-                continue
-
             command_rm(argv[1])
         else:
             print("Unknown command: " + command)
+            command_help()
+
 
 
 if __name__ == '__main__':
