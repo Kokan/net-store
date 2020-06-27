@@ -208,24 +208,25 @@ control MyIngress(inout headers hdr,
 
        bit<32> hash_id;
        if (hdr.net_store_api.isValid() && hdr.net_store_api.data != 0) {
-       hash(hash_id,
-            HashAlgorithm.crc16,
-            (bit<32>)1,
-            {hdr.net_store_api.data},
-            (bit<32>)1000);
+           hash(hash_id,
+                HashAlgorithm.crc16,
+                (bit<32>)1,
+                {hdr.net_store_api.data},
+                (bit<32>)1000);
 
-        hdr.net_store_api.id  = hash_id;
-        hdr.net_store.id  = hash_id;
+           hdr.net_store_api.id  = hash_id;
+           hdr.net_store.id  = hash_id;
        }
-       if (hdr.net_store.isValid() && hdr.net_store.data != 0) {
-       hash(hash_id,
-            HashAlgorithm.crc16,
-            (bit<32>)1,
-            {hdr.net_store.data},
-            (bit<32>)1000);
 
-        hdr.net_store_api.id  = hash_id;
-        hdr.net_store.id  = hash_id;
+       if (hdr.net_store.isValid() && hdr.net_store.data != 0) {
+           hash(hash_id,
+                HashAlgorithm.crc16,
+                (bit<32>)1,
+                {hdr.net_store.data},
+                (bit<32>)1000);
+
+           hdr.net_store_api.id  = hash_id;
+           hdr.net_store.id  = hash_id;
         }
 
         if (hdr.net_store.isValid()) {
@@ -289,24 +290,25 @@ control MyEgress(inout headers hdr,
 
        bit<32> hash_id;
        if (hdr.net_store_api.isValid() && hdr.net_store_api.data != 0) {
-       hash(hash_id,
-            HashAlgorithm.crc16,
-            (bit<32>)1,
-            {hdr.net_store_api.data},
-            (bit<32>)1000);
+           hash(hash_id,
+                HashAlgorithm.crc16,
+                (bit<32>)1,
+                {hdr.net_store_api.data},
+                (bit<32>)1000);
 
-        hdr.net_store_api.id  = hash_id;
-        hdr.net_store.id  = hash_id;
+           hdr.net_store_api.id  = hash_id;
+           hdr.net_store.id  = hash_id;
        }
-       if (hdr.net_store.isValid() && hdr.net_store.data != 0) {
-       hash(hash_id,
-            HashAlgorithm.crc16,
-            (bit<32>)1,
-            {hdr.net_store.data},
-            (bit<32>)1000);
 
-        hdr.net_store_api.id  = hash_id;
-        hdr.net_store.id  = hash_id;
+       if (hdr.net_store.isValid() && hdr.net_store.data != 0) {
+           hash(hash_id,
+                HashAlgorithm.crc16,
+                (bit<32>)1,
+                {hdr.net_store.data},
+                (bit<32>)1000);
+
+           hdr.net_store_api.id  = hash_id;
+           hdr.net_store.id  = hash_id;
         }
 
         if (standard_metadata.instance_type == INSTANCE_TYPE_I2E_CLONE) {
