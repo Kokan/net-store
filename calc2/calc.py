@@ -25,12 +25,12 @@ class P4calc(Packet):
 bind_layers(Ether, P4calc, type=ETHER_TYPE)
 
 
+s = ''
+iface = 'eth0'
+
 
 
 def main():
-
-    s = ''
-    iface = 'eth0'
 
     while True:
         s = str(raw_input('> '))
