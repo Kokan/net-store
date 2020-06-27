@@ -27,10 +27,11 @@ bind_layers(Ether, P4calc, type=ETHER_TYPE)
 
 s = ''
 iface = 'eth0'
+dst = '00:04:00:00:00:00'
 
 def command_put(data):
     try:
-        pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='+',
+        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='+',
                                           id=0,
                                           data=int(data))
 
@@ -48,7 +49,7 @@ def command_put(data):
 
 def command_get(id):
     try:
-        pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='-',
+        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='-',
                                           id=int(id),
                                           data=0)
 
@@ -66,7 +67,7 @@ def command_get(id):
 
 def command_rm(id):
     try:
-        pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='*',
+        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='*',
                                           id=int(id),
                                           data=0)
 
