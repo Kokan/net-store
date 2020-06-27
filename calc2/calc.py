@@ -64,6 +64,16 @@ def command_get(id):
     except Exception as error:
         print error
 
+def command_rm(id):
+    try:
+        pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op='*',
+                                          id=int(id),
+                                          data=0)
+
+        sendp(pkt, iface=iface, verbose=False)
+    except Exception as error:
+        print error
+
 
 def main():
 
@@ -97,9 +107,13 @@ def main():
            command_get(argv[1])
            continue
         elif command == "rm":
-           operation='*'
-           id = argv[1]
-           data = 0
+           if len(argv) != 2:
+              print "incorrect arguments, please use the following format:"
+              print "rm <id>"
+              continue
+
+           command_rm(argv[1])
+           continue
         else:
            print "Unknown command: " + command
            continue
