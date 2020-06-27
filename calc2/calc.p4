@@ -30,6 +30,8 @@ const bit<8>  NET_STORE_PUT       = 0x2b;
 const bit<8>  NET_STORE_GET       = 0x2d;
 const bit<8>  NET_STORE_RM        = 0x2a;
 
+const bit<32> CLONE_SESSIONID     = 250; /* Keep in sync with netstore_config.txt */
+
 header net_store_api_t {
     bit<8>  ver;
     bit<8>  op;
@@ -121,8 +123,6 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
 
-    const bit<32> cloneSessionId = 250;
-    
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
 
@@ -179,7 +179,7 @@ control MyIngress(inout headers hdr,
         hdr.net_store.id    = hdr.net_store_api.id;
         hdr.net_store.data  = hdr.net_store_api.data; 
 
-        clone(CloneType.I2E, cloneSessionId); 
+        clone(CloneType.I2E, CLONE_SESSIONID);
     }
 
     table calculate {
@@ -201,7 +201,7 @@ control MyIngress(inout headers hdr,
     }
     action net_store_handle_request(bit<48> dest) {
         marked_to_circulate = 1; 
-        clone(CloneType.I2E, cloneSessionId); 
+        clone(CloneType.I2E, CLONE_SESSIONID);
     }
 
     apply {
