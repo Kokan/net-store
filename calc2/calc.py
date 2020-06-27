@@ -38,12 +38,12 @@ def main():
         if len(argv) > 0:
            command = argv[0]
         else:
-           command = ""
+           print "no command"
+           continue
 
         if command == "quit" or command == "exit":
            break
-
-        if command == "put":
+        elif command == "put":
            operation='+'
            id = 0
            data = 0
@@ -53,11 +53,13 @@ def main():
            except Exception as error:
                print error
                continue
-
-        if command == "get":
+        elif command == "get":
            operation='-'
            id = argv[1]
            data = 0
+        else:
+           print "Unknown command: " + command
+           continue
 
         try:
             pkt = Ether(dst='00:04:00:00:00:00', type=ETHER_TYPE) / P4calc(op=operation,
