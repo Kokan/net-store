@@ -22,9 +22,7 @@ dst = '00:04:00:00:00:00'
 
 def command_put(data):
     try:
-        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='+',
-                                          id=0,
-                                          data=int(data))
+        pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='+', id=0, data=int(data))
 
         resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
         if resp:
@@ -40,9 +38,7 @@ def command_put(data):
 
 def command_get(id):
     try:
-        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='-',
-                                          id=int(id),
-                                          data=0)
+        pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='-', id=int(key_id), data=0)
 
         resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
         if resp:
@@ -58,9 +54,7 @@ def command_get(id):
 
 def command_rm(id):
     try:
-        pkt = Ether(dst=dst, type=ETHER_TYPE) / P4calc(op='*',
-                                          id=int(id),
-                                          data=0)
+        pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='*', id=int(key_id), data=0)
 
         sendp(pkt, iface=iface, verbose=False)
     except Exception as error:
