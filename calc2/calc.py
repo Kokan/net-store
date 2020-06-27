@@ -40,10 +40,7 @@ def main():
         else:
            command = ""
 
-        if command == "quit":
-           break
-
-        if command == "exit":
+        if command == "quit" or command == "exit":
            break
 
         if command == "put":
