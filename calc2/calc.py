@@ -1,17 +1,9 @@
 #!/usr/bin/env python
 
-import argparse
-import sys
-import socket
-import random
-import struct
-import re
-
-from scapy.all import sendp, send, srp1
-from scapy.all import Packet, hexdump
+from scapy.all import sendp, srp1
+from scapy.all import Packet
 from scapy.all import Ether, StrFixedLenField, XByteField, IntField
 from scapy.all import bind_layers
-import readline
 
 ETHER_TYPE = 0x1234
 
