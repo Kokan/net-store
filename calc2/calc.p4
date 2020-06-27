@@ -124,10 +124,8 @@ control MyIngress(inout headers hdr,
                   inout standard_metadata_t standard_metadata) {
 
     register<bit<32>>(1) reg;
-    register<bit<48>>(1) regdest;
 
     register<bit<32>>(1) rm_reg;
-    register<bit<48>>(1) rm_regdest;
 
     bool marked_to_circulate = false;
 
@@ -138,15 +136,13 @@ control MyIngress(inout headers hdr,
     
     action operation_get() {
         @atomic {
-        reg.write(0,hdr.net_store_api.id);
-        regdest.write(0,hdr.ethernet.srcAddr);
+          reg.write(0,hdr.net_store_api.id);
         }
     }
 
     action operation_rm() {
         @atomic {
-        rm_reg.write(0,hdr.net_store_api.id);
-        rm_regdest.write(0,hdr.ethernet.srcAddr);
+          rm_reg.write(0,hdr.net_store_api.id);
         }
     }
 
@@ -200,7 +196,7 @@ control MyIngress(inout headers hdr,
         }
     }
 
-    action net_store_handle_request(bit<48> dest) {
+    action net_store_handle_request() {
         marked_to_circulate = true;
         clone(CloneType.I2E, CLONE_SESSIONID);
     }
@@ -231,27 +227,21 @@ control MyIngress(inout headers hdr,
         }
 
         if (hdr.net_store.isValid()) {
-            bit<32> rm_id;
-            bit<48> rm_dest;
-
             bit<32> id;
-            bit<48> dest;
-
             @atomic {
-            reg.read(id,0);
-            regdest.read(dest,0);
+              reg.read(id,0);
             }
+
+            bit<32> rm_id;
             @atomic {
-            rm_reg.read(rm_id,0);
-            rm_regdest.read(rm_dest,0);
+               rm_reg.read(rm_id,0);
             }
 
             if(id == hdr.net_store.id)
             {
-                net_store_handle_request(dest);
+                net_store_handle_request();
                 @atomic {
                   reg.write(0,0);
-                  regdest.write(0,0);
                 }
             }
             else if(rm_id == hdr.net_store.id)
@@ -260,7 +250,6 @@ control MyIngress(inout headers hdr,
 
                 @atomic {
                   rm_reg.write(0,0);
-                  rm_regdest.write(0,0);
                 }
             }
             else
