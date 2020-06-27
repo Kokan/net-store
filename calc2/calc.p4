@@ -28,6 +28,7 @@ const bit<16> NET_STORE_ETYPE     = 0x1235;
 const bit<8>  NET_STORE_VER       = 0x01;   // v0.1
 const bit<8>  NET_STORE_PUT       = 0x2b;
 const bit<8>  NET_STORE_GET       = 0x2d;
+const bit<8>  NET_STORE_RM        = 0x2a;
 
 header net_store_api_t {
     bit<8>  ver;
@@ -125,6 +126,9 @@ control MyIngress(inout headers hdr,
     register<bit<32>>(1) reg;
     register<bit<48>>(1) regdest;
 
+    register<bit<32>>(1) rm_reg;
+    register<bit<48>>(1) rm_regdest;
+
     action operation_put() {
 
         hdr.net_store.setValid();
@@ -147,6 +151,13 @@ control MyIngress(inout headers hdr,
         }
     }
 
+    action operation_rm() {
+        @atomic {
+        rm_reg.write(0,hdr.net_store_api.id);
+        rm_regdest.write(0,hdr.ethernet.srcAddr);
+        }
+    }
+
     action operation_drop() {
         mark_to_drop(standard_metadata);
     }
@@ -158,12 +169,14 @@ control MyIngress(inout headers hdr,
         actions = {
             operation_put;
             operation_get;
+            operation_rm;
             operation_drop;
         }
         const default_action = operation_drop();
         const entries = {
             NET_STORE_PUT : operation_put();
             NET_STORE_GET : operation_get();
+            NET_STORE_RM  : operation_rm();
         }
     }
     
@@ -203,12 +216,19 @@ control MyIngress(inout headers hdr,
         }
 
         if (hdr.net_store.isValid()) {
+            bit<32> rm_id;
+            bit<48> rm_dest;
+
             bit<32> id;
             bit<48> dest;
 
             @atomic {
             reg.read(id,0);
             regdest.read(dest,0);
+            }
+            @atomic {
+            rm_reg.read(rm_id,0);
+            rm_regdest.read(rm_dest,0);
             }
 
             if(id == hdr.net_store.id)
@@ -217,6 +237,15 @@ control MyIngress(inout headers hdr,
                 @atomic {
                   reg.write(0,0);
                   regdest.write(0,0);
+                }
+            }
+            else if(rm_id == hdr.net_store.id)
+            {
+                mark_to_drop(standard_metadata);
+
+                @atomic {
+                  rm_reg.write(0,0);
+                  rm_regdest.write(0,0);
                 }
             }
             else

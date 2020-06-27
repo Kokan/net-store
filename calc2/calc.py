@@ -57,6 +57,10 @@ def main():
            operation='-'
            id = argv[1]
            data = 0
+        elif command == "rm":
+           operation='*'
+           id = argv[1]
+           data = 0
         else:
            print "Unknown command: " + command
            continue
