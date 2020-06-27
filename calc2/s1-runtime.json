@@ -8,7 +8,6 @@
       "match": {},
       "action_name": "MyIngress.operation_forward",
       "action_params": {
-        "dstAddr": "08:00:00:00:01:01",
         "port": 2
       }
     }

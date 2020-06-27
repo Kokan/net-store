@@ -131,10 +131,8 @@ control MyIngress(inout headers hdr,
 
     bit<1> marked_to_circulate = 0;
 
-    action operation_forward(bit<48> dstAddr, bit<9> port) {
+    action operation_forward(bit<9> port) {
         standard_metadata.egress_spec = port;
-        hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
-        hdr.ethernet.dstAddr = dstAddr;
     }
 
     
