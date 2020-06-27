@@ -156,7 +156,9 @@ control MyIngress(inout headers hdr,
     
 
     table net_store_lpm {
-        key = {}
+        key = {
+           standard_metadata.ingress_port : exact;
+        }
         actions = {
             operation_forward;
             operation_drop;

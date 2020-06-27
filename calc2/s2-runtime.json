@@ -5,7 +5,9 @@
   "table_entries": [
       {
         "table": "MyIngress.net_store_lpm",
-        "match": {},
+        "match": {
+          "standard_metadata.ingress_port": 1
+        },
         "action_name": "MyIngress.operation_forward",
         "action_params": {
           "port": 2
