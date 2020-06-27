@@ -9,96 +9,97 @@ ETHER_TYPE = 0x1234
 
 class P4calc(Packet):
     name = "P4calc"
-    fields_desc = [ XByteField("version", 0x01),
-                    StrFixedLenField("op", "X", length=1),
-                    IntField("id", 0),
-                    IntField("data", 0xDEADBABE)]
+    fields_desc = [XByteField("version", 0x01),
+                   StrFixedLenField("op", "X", length=1),
+                   IntField("id", 0),
+                   IntField("data", 0xDEADBABE)]
 
 bind_layers(Ether, P4calc, type=ETHER_TYPE)
 
 
-iface = 'eth0'
-dst = '00:04:00:00:00:00'
+IFACE = 'eth0'
+DST = '00:04:00:00:00:00'
 
 def command_put(data):
     try:
         pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='+', id=0, data=int(data))
 
-        resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
+        resp = srp1(pkt, iface=IFACE, timeout=1, verbose=False)
         if resp:
-            p4calc=resp[P4calc]
+            p4calc = resp[P4calc]
             if p4calc:
-                print "ID: {}".format(p4calc.id)
+                print("ID: {}".format(p4calc.id))
             else:
-                print "cannot find P4calc header in the packet"
+                print("cannot find P4calc header in the packet")
         else:
-            print "Didn't receive response"
+            print("Didn't receive response")
     except Exception as error:
-        print error
+        print(error)
 
-def command_get(id):
+def command_get(key_id):
     try:
         pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='-', id=int(key_id), data=0)
 
-        resp = srp1(pkt, iface=iface, timeout=1, verbose=False)
+        resp = srp1(pkt, iface=IFACE, timeout=1, verbose=False)
         if resp:
-            p4calc=resp[P4calc]
+            p4calc = resp[P4calc]
             if p4calc:
-                print "Value: {}".format(p4calc.data)
+                print("Value: {}".format(p4calc.data))
             else:
-                print "cannot find P4calc header in the packet"
+                print("cannot find P4calc header in the packet")
         else:
-            print "Didn't receive response"
+            print("Didn't receive response")
     except Exception as error:
-        print error
+        print(error)
 
-def command_rm(id):
+def command_rm(key_id):
     try:
         pkt = Ether(dst=DST, type=ETHER_TYPE) / P4calc(op='*', id=int(key_id), data=0)
 
-        sendp(pkt, iface=iface, verbose=False)
+        sendp(pkt, iface=IFACE, verbose=False)
     except Exception as error:
-        print error
+        print(error)
 
 
 def main():
 
     while True:
-        s = str(raw_input('> '))
-        argv = s.split()
+        user_input = str(raw_input('> '))
+        argv = user_input.split()
         if len(argv) > 0:
-           command = argv[0]
+            command = argv[0]
         else:
-           print "no command"
-           continue
+            print("no command")
+            continue
 
-        if command == "quit" or command == "exit":
-           break
-        elif command == "put":
-           try:
-               if int.bit_length(int(argv[1])) <= 32:
-                   data = argv[1]
-           except Exception as error:
-               print error
-               continue
+        if command in ("quit", "exit"):
+            break
 
-           command_put(data)
+        if command == "put":
+            try:
+                if int.bit_length(int(argv[1])) <= 32:
+                    data = argv[1]
+            except Exception as error:
+                print(error)
+                continue
+
+            command_put(data)
         elif command == "get":
-           if len(argv) != 2:
-              print "incorrect arguments, please use the following format:"
-              print "get <id>"
-              continue
+            if len(argv) != 2:
+                print("incorrect arguments, please use the following format:")
+                print("get <key_id>")
+                continue
 
-           command_get(argv[1])
+            command_get(argv[1])
         elif command == "rm":
-           if len(argv) != 2:
-              print "incorrect arguments, please use the following format:"
-              print "rm <id>"
-              continue
+            if len(argv) != 2:
+                print("incorrect arguments, please use the following format:")
+                print("rm <key_id>")
+                continue
 
-           command_rm(argv[1])
+            command_rm(argv[1])
         else:
-           print "Unknown command: " + command
+            print("Unknown command: " + command)
 
 
 if __name__ == '__main__':
