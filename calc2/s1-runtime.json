@@ -12,6 +12,16 @@
       "action_params": {
         "port": 2
       }
+    },
+    {
+      "table": "MyIngress.net_store_lpm",
+      "match": {
+        "standard_metadata.ingress_port": 3
+      },
+      "action_name": "MyIngress.operation_forward",
+      "action_params": {
+        "port": 2
+      }
     }
   ]
 }
