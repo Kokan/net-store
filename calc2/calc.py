@@ -18,7 +18,7 @@ ETHER_TYPE = 0x1234
 class P4calc(Packet):
     name = "P4calc"
     fields_desc = [ XByteField("version", 0x01),
-                    StrFixedLenField("op", "+", length=1),
+                    StrFixedLenField("op", "X", length=1),
                     IntField("id", 0),
                     IntField("data", 0xDEADBABE)]
 
