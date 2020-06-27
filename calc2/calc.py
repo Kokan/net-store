@@ -25,7 +25,6 @@ class P4calc(Packet):
 bind_layers(Ether, P4calc, type=ETHER_TYPE)
 
 
-s = ''
 iface = 'eth0'
 dst = '00:04:00:00:00:00'
 
