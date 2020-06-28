@@ -118,7 +118,7 @@ In order to give a response for the clients the data has to be cloned. We use tw
 \cite{cloning1} \cite{cloning2}
 \subsection{Hashing}
 To be able to interact with data and maintain consistency we have given each datum a unique ID that is generated with the built-in CRC16 hashing \cite{hashing2} algorithm. We have used hashing during \textit{ingress} and \textit{egress processing}. First, we check which kind of header is active, then calculating the ID. Hashing has to be implemented twice in the ingress and egress for the two kind of header. As stated above we use cloning to send back data, however the cloned data is not containing the generated ID. In the egress processing we recalculate the hashed id to assign it to the clone.
-\cite{hashing1}
+\cite{scholz2019cryptographic}
 \subsection{Forwarding}
 To make the data circulating in the given topology we have implemented two tables. One is for handling the different operations, \textit{PUT, GET, and POP}, the second table is for forwarding the messages. We use a boolean variable to mark data on \textit{PUT and GET} operations to be circlulated. The key of the table is the ingress port. If the key is equal to port \#1 or \#3 data is going to be forwarded on port \#2. The only incoming parameter for the actions is the port number where data are going to be forwarded.
 \section{Tests \& Results}
@@ -132,23 +132,12 @@ For testing we have used a linux virtual machine that has MiniNet pre-installed.
 \section{Conclusion}
 Programing switches can be hard. Our task was to create a network storage in P4 language with the help of MiniNet and python. In the topology the data had to be circulated through switches. Due to time limitations we have simplified some parts of the project, for example: the port where the communication executed with clients is hardcoded. Three operations had to be implemented: \textit{PUT, GET and POP}. The first two used cloning the give proper response to the clients. All data has unique IDs using the built-in hashing algorithm. Looking at the logs show that when puting data in the topology that is circulating through the switches. All things considered, we have achived our goal to store data.
 
-\begin{thebibliography}{2}
-\bibitem{p4tut} https://github.com/p4lang/tutorials
-\bibitem{mininet} http://docs.mininet.org
-\bibitem{v1model} https://github.com/p4lang/p4c/blob/master/p4include/v1model.p4
-\bibitem{bmv2} https://github.com/p4lang/behavioral-model
-\bibitem{hashing1} https://p4.org/p4-spec/docs/PSA.html\#sec-hash-function
-\bibitem{hashing2} https://www.net.in.tum.de/fileadmin/bibtex/publications/papers/2019-P4-workshop-hashing.pdf
-\bibitem{cloning1} https://p4.org/p4-spec/docs/PSA.html\#sec-clone
-\bibitem{cloning2} http://csie.nqu.edu.tw/smallko/sdn/p4-clone.htm
-
-\end{thebibliography}
 
 
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
-%%\printbibliography
+\printbibliography
 
 
 
