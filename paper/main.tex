@@ -100,7 +100,7 @@ Initially, we had the following features in mind for the program:
 \end{itemize}
 
 \section{Challenges \& Simplifications}
-Each feature has its own challenge. As development went on, we decided to simplify some of these features due to time constraints.
+The design and the capabilities of a database was kept minimal, as the main aim was to explore the possibility of implementing a database on top of a P4 capable switch. A complex database feature are just a combination of these simplified functions.
 \subsection{Storing Data}
 Storing data has raised a lot of questions that had to be considered, for example \textit{What kind of data structure should we use?} and \textit{How the servers positioned in the topology?}. We found that the header is capable of storing data, which was enough for us. We decided to simplify the second question by using only simple topologies where each switch has two or maximum three connections. The data can circulate inside the topology using any port.
 \subsection{Implementing Operations}
@@ -108,7 +108,7 @@ We decided to implement three operations: \textit{PUT, GET, POP}. Since the clie
 \subsection{Handling Parallel Requests}
 Handling multiple request at the same time is hard to implement. One possible solution is to use working queues. Due to time limitations we had to simplify the task so we have assumed that only one user sends data from a single computer into the topology.
 \subsection{Handling Large Data}
-Large data can be handled server or client side. We have agreed to implement a data size restriction only on the client side. If the users tries to send a data that is larger than the maximum value, the data will not be sent to the server.
+If a pack of data cannot be fit inside one package the question is raised how should we handle them. The first method is splitting the data into separate packets, however due to time limitation we have agreed to move on with a more drastical way. Implementing a size limit. It can be found both on the client and server side, when a larger data arrives it drops them.
 \subsection{Unique ID}
 In order to maintain consistency and a way for clients interact with the packages in the database, a unique id had to be assigned for each package. We found \textit{hashing} to be the go-to solution.
 \section{Methods}
