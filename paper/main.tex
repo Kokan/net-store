@@ -104,11 +104,11 @@ The design and the capabilities of a database was kept minimal, as the main aim 
 \subsection{Storing Data}
 Storing data has raised a lot of questions that had to be considered, for example \textit{What kind of data structure should we use?} and \textit{How the servers positioned in the topology?}. We found that the header is capable of storing data, which was enough for us. We decided to simplify the second question by using only simple topologies where each switch has two or maximum three connections. The data can circulate inside the topology using any port.
 \subsection{Implementing Operations}
-We decided to implement three operations: \textit{PUT, GET, POP}. Since the clients require some kind of feedback from the server for all of these operations, we had to use package cloning, which became quite a challenge. We decided to \textbf{reserve port 3} in the topology for \textbf{client-server communication} only. This was necessary due to way cloning works: it uses a port that is predefined for the network.
+We decided to implement three operations: \textit{PUT, GET, REMOVE}. Since the clients require some kind of feedback from the server for all of these operations, we had to use package cloning, which became quite a challenge. We decided to \textbf{reserve port 3} in the topology for \textbf{client-server communication} only. This was necessary due to way cloning works: it uses a port that is predefined for the network.
 \subsection{Handling Parallel Requests}
-Handling multiple request at the same time is hard to implement. One possible solution is to use working queues. Due to time limitations we had to simplify the task so we have assumed that only one user sends data from a single computer into the topology.
+Handling multiple request at the same time is hard to implement. One possible solution is to use working queues. We had simplified the task so we have assumed that only one user sends data from a single computer into the topology.
 \subsection{Handling Large Data}
-If a pack of data cannot be fit inside one package the question is raised how should we handle them. The first method is splitting the data into separate packets, however due to time limitation we have agreed to move on with a more drastical way. Implementing a size limit. It can be found both on the client and server side, when a larger data arrives it drops them.
+If a pack of data cannot be fit inside one package the question is raised how should we handle them. The first method is splitting the data into separate packets, however we have found another, easier solution, where we are going to implement a size limit. It can be found both on the client and server side, when a larger data arrives it drops them.
 \subsection{Unique ID}
 In order to maintain consistency and a way for clients interact with the packages in the database, a unique id had to be assigned for each package. We found \textit{hashing} to be the go-to solution.
 \section{Methods}
@@ -118,9 +118,9 @@ In order to give a response for the clients the data has to be cloned. We use tw
 \cite{cloning1} \cite{cloning2}
 \subsection{Hashing}
 To be able to interact with data and maintain consistency we have given each datum a unique ID that is generated with the built-in CRC16 hashing \cite{hashing2} algorithm. We have used hashing during \textit{ingress} and \textit{egress processing}. First, we check which kind of header is active, then calculating the ID. Hashing has to be implemented twice in the ingress and egress for the two kind of header. As stated above we use cloning to send back data, however the cloned data is not containing the generated ID. In the egress processing we recalculate the hashed id to assign it to the clone.
-\cite{hashing1}
+\cite{scholz2019cryptographic}
 \subsection{Forwarding}
-To make the data circulating in the given topology we have implemented two tables. One is for handling the different operations, \textit{PUT, GET, and POP}, the second table is for forwarding the messages. We use a boolean variable to mark data on \textit{PUT and GET} operations to be circlulated. The key of the table is the ingress port. If the key is equal to port \#1 or \#3 data is going to be forwarded on port \#2. The only incoming parameter for the actions is the port number where data are going to be forwarded.
+To make the data circulating in the given topology we have implemented two tables. One is for handling the different operations, \textit{PUT, GET, and REMOVE}, the second table is for forwarding the messages. We use a boolean variable to mark data on \textit{PUT and GET} operations to be circlulated. The key of the table is the ingress port. If the key is equal to port \#1 or \#3 data is going to be forwarded on port \#2. The only incoming parameter for the actions is the port number where data are going to be forwarded.
 \section{Tests \& Results}
 For testing we have used a linux virtual machine that has MiniNet pre-installed. To start the project we have to run the \textit{init\_netstore.py} to initialize the port where the communication with the client happens. After that the P4 program can be started. We used a triangle topology to test the program. It has one host and three swicthes all of which are circulating the data using the same port number. Communication with clients happens on port \#3.
 \begin{figure}[ht]
@@ -128,27 +128,14 @@ For testing we have used a linux virtual machine that has MiniNet pre-installed.
 	\includegraphics[scale=0.7]{top.png}
 	\centering
 \end{figure}
-
+With the help of the log files we can check whether the results meet our expectations. As we could see the switches are forwarding the packets which are circulating in the topology as expected. During client side testing we have tried to cover as many branches as possible. We have used manual testing only for both the server and the client side.
 \section{Conclusion}
-Programing switches can be hard. Our task was to create a network storage in P4 language with the help of MiniNet and python. In the topology the data had to be circulated through switches. Due to time limitations we have simplified some parts of the project, for example: the port where the communication executed with clients is hardcoded. Three operations had to be implemented: \textit{PUT, GET and POP}. The first two used cloning the give proper response to the clients. All data has unique IDs using the built-in hashing algorithm. Looking at the logs show that when puting data in the topology that is circulating through the switches. All things considered, we have achived our goal to store data.
-
-\begin{thebibliography}{2}
-\bibitem{p4tut} https://github.com/p4lang/tutorials
-\bibitem{mininet} http://docs.mininet.org
-\bibitem{v1model} https://github.com/p4lang/p4c/blob/master/p4include/v1model.p4
-\bibitem{bmv2} https://github.com/p4lang/behavioral-model
-\bibitem{hashing1} https://p4.org/p4-spec/docs/PSA.html\#sec-hash-function
-\bibitem{hashing2} https://www.net.in.tum.de/fileadmin/bibtex/publications/papers/2019-P4-workshop-hashing.pdf
-\bibitem{cloning1} https://p4.org/p4-spec/docs/PSA.html\#sec-clone
-\bibitem{cloning2} http://csie.nqu.edu.tw/smallko/sdn/p4-clone.htm
-
-\end{thebibliography}
-
+Programing switches can be hard. Our task was to create a network storage in P4 language with the help of MiniNet and python. In the topology the data had to be circulated through switches. We have simplified some parts of the project, for example: the port where the communication executed with clients is hardcoded. Three operations had to be implemented: \textit{PUT, GET and REMOVE}. The first two used cloning the give proper response to the clients. All data has unique IDs using the built-in hashing algorithm. With manual testing we tried to cover as many branches and test for all the possible inputs. The results met our expectations. The client side dropped every message that is larger than the limit, also responded correctly for different operations. Furthermore, using wrong format for the input, for instance misspelling the input command, results in execution break or prints a help message. Taking a look at the logs for the P4 program show that when puting data in the topology that is circulating through the switches, as expected. All things considered, we have achived our goal to store data.
 
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
-%%\printbibliography
+\printbibliography
 
 
 
